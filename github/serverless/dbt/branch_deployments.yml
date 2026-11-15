@@ -12,14 +12,14 @@ env:
   DAGSTER_CLOUD_ORGANIZATION: ${{ secrets.DAGSTER_CLOUD_ORGANIZATION }}
   DAGSTER_CLOUD_API_TOKEN: ${{ secrets.DAGSTER_CLOUD_API_TOKEN }}
   ENABLE_FAST_DEPLOYS: 'true'
-  PYTHON_VERSION: '3.10'
+  PYTHON_VERSION: '3.12'
   DAGSTER_CLOUD_FILE: 'dagster_cloud.yaml'
   DAGSTER_PROJECT_NAME: 'dagster_dbt_scaffold'
 
 jobs:
   dagster_cloud_default_deploy:
     name: Dagster Serverless Deploy
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       build_info: ${{ steps.parse-workspace.outputs.build_info }}
 
@@ -65,11 +65,11 @@ jobs:
         # --upgrade-strategy eager picks up newer packages that are required for things to work
         run: |
           python -m pip install pip --upgrade
-          cd project-repo/${{ env.DAGSTER_PROJECT_NAME }}
+          cd "project-repo/$DAGSTER_PROJECT_NAME"
           pip install . --upgrade --upgrade-strategy eager
-          dagster-dbt project prepare-and-package --file ${{ env.DAGSTER_PROJECT_NAME }}/project.py
+          dagster-dbt project prepare-and-package --file "$DAGSTER_PROJECT_NAME/project.py"
           # The cli command below can be used to manage syncing the prod manifest to branches if state_path is set on the DbtProject
-          # dagster-cloud ci dagster-dbt project manage-state --file ${{ env.DAGSTER_PROJECT_NAME }}/project.py
+          # dagster-cloud ci dagster-dbt project manage-state --file "$DAGSTER_PROJECT_NAME/project.py"
         shell: bash
 
       - name: Python Executable Deploy
@@ -84,7 +84,7 @@ jobs:
 
   dagster_cloud_docker_deploy:
     name: Docker Deploy
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     if: needs.dagster_cloud_default_deploy.outputs.build_info
     needs: dagster_cloud_default_deploy
     strategy:
